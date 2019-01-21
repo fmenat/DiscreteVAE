@@ -11,5 +11,8 @@ Experiments with Discrete VAE
 * Run experiments on Reuters Corpus Volume 1 (RCV 1)
 * NDCG on Reuters -> Analize how the model order the data according to labels
 * Use Collocations (n-grams)
+    * results does not change much --> analysis ?
 * Intrinsec Measure -> Accuracy on labeling the datasets with hidden representation
-* Few Bits (4-8-16) -> Analize cells distributions
+    * Done!
+* Few Bits (4-8-16) -> Analize cells distributions (compare with regular Autoencoder, no bayesian)
+    * Done!
