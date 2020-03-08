@@ -31,3 +31,92 @@ def define_generator(Nb,data_dim,layers=2,units=32,dropout=0.0,BN=False,exclusiv
     else:
         model.add(Dense(data_dim, activation='sigmoid'))
     return model
+
+def add_Conv(it, filters, kernel_s, BN = False, **args):
+    f1 = Conv2D(filters, kernel_s, padding='same', **args)(it)
+    if BN:
+        f1 = BatchNormalization()(f1)
+    return f1                                            
+def conv_bloq(it, filters, kernel_s, max_pool=0, BN=False,double=False, **args):
+    f1 = add_Conv(it, filters, kernel_s, BN = BN, **args)
+    if double:
+        f1 = add_Conv(f1, filters, kernel_s, BN = BN, **args)
+        
+    if max_pool!= 0:
+        f1 = MaxPool2D(max_pool)(f1)
+    return f1
+
+def def_pre_encoder_CNN(input_dim, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False, **args): 
+    it = Input(shape=input_dim)  #fixed length..
+    f1 = it
+    for l in range(L):
+        f1 = conv_bloq(f1, filters, kernel_s, max_pool=max_pool, BN=BN, double=double, **args)         
+        filters = int(filters*2)
+        
+    shape_before_F = K.int_shape(f1)[1:] 
+    out_x = Flatten()(f1)
+    #f1 = Dense(128, activation='relu')(f1) #o solo una
+    #f1 = Dense(500, activation='relu')(f1)
+    #f1 = Dense(500, activation='relu')(f1)
+    #if BN:
+    #    f1 = BatchNormalization()(f1)
+    return Model(inputs=it, outputs=out_x, name='pre-encoder'), shape_before_F
+
+
+def add_ConvT(it, filters, kernel_s, BN = False, **args):
+    f1 = Conv2DTranspose(filters, kernel_s, padding='same', **args)(it)
+    if BN:
+        f1 = BatchNormalization()(f1)
+    return f1
+def convT_bloq(it, filters, kernel_s, max_pool=0, BN=False,double=False, **args):
+    f1 = add_ConvT(it, filters, kernel_s, BN = BN, **args)
+    if double:
+        f1 = add_ConvT(f1, filters, kernel_s, BN = BN, **args)
+        
+    if max_pool!= 0:
+        f1 = UpSampling2D(max_pool)(f1)
+    return f1
+
+
+def define_generator_CNN(shape_before_F, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False,out_shape =[],    **args): 
+    it = Input(shape=(1,), name="dummy_inp")  #fixed length..
+    #f1 = Dense(500, activation='relu')(it)
+    #f1 = Dense(500, activation='relu')(f1)
+    #if BN:
+    #    f1 = BatchNormalization()(f1)
+    
+    f1 = Dense(np.prod(shape_before_F), activation='linear')(it) 
+    
+    f1 = Reshape(shape_before_F)(f1)
+    #if BN:
+    #    f1 = BatchNormalization()(f1)
+    
+    filters = int(filters*2**(L-1))
+    for l in range(L):
+        f1 = convT_bloq(f1, filters, kernel_s, max_pool=max_pool, BN=BN, double=double, **args)         
+        filters = int(filters/2)
+    
+    channels = 1
+    if len(out_shape) !=0:
+        channels = out_shape[-1]
+    out_x = Conv2D(channels, kernel_s, strides=1, padding='same', activation='sigmoid')(f1)
+
+    #check reconstructed data shape vs needed recosntructed shape
+    if len(out_shape) !=0:
+        _, d_x, d_y,_ = K.int_shape(out_x)
+        delta_x = out_shape[0] - d_x
+        delta_y = out_shape[1] - d_y
+
+        padd_len_x = int(np.abs(delta_x/2)) #la mitad en cad alado
+        if np.abs(delta_x) % 2 !=0:
+            padd_len_x += 1
+
+        padd_len_y = int(np.abs(delta_y/2)) #la mitad en cad alado
+        if np.abs(delta_y) % 2 !=0:
+            padd_len_y += 1              
+        if delta_x > 0 or delta_y > 0:
+            out_x = ZeroPadding2D((padd_len_x, padd_len_y))(out_x) #fill con zeros
+        elif delta_x < 0 or delta_y < 0: 
+            out_x = Cropping2D((padd_len_x, padd_len_y))(out_x)
+
+    return Model(inputs=it, outputs=out_x, name='generator/decoder')
