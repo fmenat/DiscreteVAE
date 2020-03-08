@@ -2,7 +2,7 @@ import keras
 from keras.layers import *
 from keras.models import Sequential,Model
 from keras import backend as K
-
+import numpy as np
 
 def define_pre_encoder(data_dim,layers=2,units=512,dropout=0.0,BN=False): #define pre_encoder network
     model = Sequential(name='pre-encoder')
