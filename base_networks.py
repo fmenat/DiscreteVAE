@@ -4,6 +4,20 @@ from keras.models import Sequential,Model
 from keras import backend as K
 import numpy as np
 
+def KL_loss(z_mean,z_log_var):
+    #the mean and log-var of the latent distribution
+    def KL(y_true, y_pred):
+        return - 0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1) #con varianza
+    return KL
+
+def BKL_loss(logits_b):
+    p_b = keras.activations.sigmoid(logits_b) #B_j = Q(b_j) probability of b_j
+    Nb = K.int_shape(p_b)[1]
+    ep = K.epsilon()
+    def KL(y_true, y_pred):
+        return Nb*np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
+    return KL
+
 def define_pre_encoder(data_dim,layers=2,units=512,dropout=0.0,BN=False): #define pre_encoder network
     model = Sequential(name='pre-encoder')
     model.add(InputLayer(input_shape=(data_dim,)))

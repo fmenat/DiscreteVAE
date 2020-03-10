@@ -61,13 +61,25 @@ class MedianHashing(object):
         self.fit(X)
         return self.transform(X)
     
+def xor(a,b):
+    return (a|b) & ~(a&b)
+def calculate_hamming_D(a,B):
+    #return np.sum(a.astype('bool')^ B.astype('bool') ,axis=1) #distancia de hamming (# bits distintos)
+    #return np.sum(np.logical_xor(a,B) ,axis=1) #distancia de hamming (# bits distintos)
+    return np.sum(a != B,axis=1) #distancia de hamming (# bits distintos) -- fastest
+    #return np.sum(xor(a,B) ,axis=1) #distancia de hamming (# bits distintos)
+
 def get_similar(query, corpus,tipo="topK", K=100, ball=2):
     """
         Retrieve similar documents to the query document inside the corpus (source)
-    """    
+    """
+    #codify binary codes to fastest data type
+    query = query.astype('int8')
+    corpus = corpus.astype('int8')
+    
     query_similares = [] #indices
     for number, dato_hash in enumerate(query):
-        hamming_distance = np.sum(dato_hash != corpus,axis=1) #distancia de hamming (# bits distintos)
+        hamming_distance = calculate_hamming_D(dato_hash, corpus) # # bits distintos)
         if tipo=="EM": #match exacto
             ball= 0
         
@@ -83,6 +95,9 @@ def measure_metrics(labels_name, data_retrieved_query, labels_query, labels_sour
     """
         Measure precision at K and recall at K, where K is the len of the retrieval documents
     """
+    if type(labels_source) == list:
+        labels_source = np.asarray(labels_source)
+    
     #relevant document for query data
     count_labels = {label:np.sum([label in aux for aux in labels_source]) for label in labels_name} 
     
@@ -125,16 +140,19 @@ def M_P_atk(datas_similars, labels_query, labels_source, K=1):
     """
         Mean (overall the queries) precision at K
     """
+    if type(labels_source) == list:
+        labels_source = np.asarray(labels_source)
     return np.mean([P_atk(labels_source[datas_similars[i]],labels_query[i],K=K) if len(datas_similars[i]) != 0 else 0.
                     for i,_ in enumerate(datas_similars)])
 
-def measure_metrics_P(labels_name, data_retrieved_query, labels_data, labels_source):
-    return M_P_atk(val_similares_val, labels_val, K=99999999) #to all the list
 
 def AP_atk(data_retrieved_query, label_query, labels_source, K=0):
     """
         Average precision at K, average all the list precision until K.
     """
+    if type(labels_source) == list:
+        labels_source = np.asarray(labels_source)
+        
     if K == 0:
         K = len(data_retrieved_query)
     
@@ -202,15 +220,15 @@ def compare_cells_plot(nb,train_hash1,train_hash2,test_hash1=[],test_hash2=[]):
         
 
 from PIL import Image
-def check_availability(folder_imgs, labels_aux):
-    imgs_files = os.listdir(folder_imgs)
+def check_availability(folder_imgs, imgs_files, labels_aux):
+    imgs_folder = os.listdir(folder_imgs)
 
     mask_ = np.zeros((len(imgs_files)), dtype=bool) 
     for contador, (img_n, la) in enumerate(zip(imgs_files, labels_aux)):
         if contador%10000==0:
             gc.collect()
         
-        if img_n in imgs_files and len(la)!=0: #si imagen fue descargada y tiene labels.
+        if img_n in imgs_folder and len(la)!=0: #si imagen fue descargada y tiene labels.
             imagen = Image.open(folder_imgs+img_n)
             aux = np.asarray(imagen)
             if len(aux.shape) == 3 and aux.shape[2] == 3:#si tiene 3 canals
@@ -219,7 +237,7 @@ def check_availability(folder_imgs, labels_aux):
             imagen.close()
     return mask_
 
-def load_imgs_mask(imgs_files, mask_used, size, dtype = 'float32'):
+def load_imgs_mask(imgs_files, mask_used, size, dtype = 'uint8'):
     N_used = np.sum(mask_used)
     X_t = np.zeros((N_used, size,size,3), dtype=dtype)
     real_i = 0
@@ -239,3 +257,18 @@ def load_imgs_mask(imgs_files, mask_used, size, dtype = 'float32'):
             del aux, imagen
             real_i +=1
     return X_t
+
+def get_topK_labels(labels_set, labels, K=1):
+    count_labels = {label:np.sum([label in aux for aux in labels_set]) for label in labels} 
+    sorted_x = sorted(count_labels.items(), key=lambda kv: kv[1], reverse=True)
+    print("category with most data (%s) has = %d, the top-K category (%s) has = %d"%(sorted_x[0][0],sorted_x[0][1],sorted_x[K-1][0], sorted_x[K-1][1]))
+    return [value[0] for value in sorted_x[:K]]
+
+def set_newlabel_list(new_labels, labels_set):
+    return [[topic for topic in labels_list if topic in new_labels] for labels_list in labels_set]
+
+def enmask_data(data, mask):
+    if type(data) == list:
+        return np.asarray(data)[mask].tolist()
+    elif type(data) == np.ndarray:
+        return data[mask]
