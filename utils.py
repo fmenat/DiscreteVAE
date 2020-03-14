@@ -52,33 +52,62 @@ class MedianHashing(object):
         self.latent_dim = X.shape[1]
     def transform(self, X):
         assert(X.shape[1] == self.latent_dim)
-        binary_code = np.zeros(X.shape)
+        binary_code = np.zeros(X.shape, dtype='int32')
         for i in range(self.latent_dim):
             binary_code[np.nonzero(X[:,i] < self.threshold[i]),i] = 0
             binary_code[np.nonzero(X[:,i] >= self.threshold[i]),i] = 1
-        return binary_code.astype(int)
+        return binary_code
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X)
+
+def get_hammD(query, corpus):
+    """
+        Retrieve similar documents to the query document inside the corpus (source)
+    """
+    #codify binary codes to fastest data type
+    query = query.astype('int8') #no voy a ocupar mas de 127 bits
+    corpus = corpus.astype('int8')
     
+    query_hammD = np.zeros((len(query),len(corpus)),dtype='int16') #distancia no sera mayor a 2^16
+    for i,dato_hash in enumerate(query):
+        query_hammD[i] = calculate_hamming_D(dato_hash, corpus) # # bits distintos)
+    return query_hammD
+
+def get_similar_hammD_based(query_hammD,tipo="topK", K=100, ball=0):
+    """
+        Retrieve similar documents to the query document inside the corpus (source)
+    """
+    query_similares = [] #indices
+    for i in range(len(query_hammD)):        
+        if tipo=="ball" or tipo=="EM":
+            K = np.sum(query_hammD[i] <= ball) #find K over ball radius
+            
+        #get topK
+        ordenados = np.argsort(query_hammD[i]) #indices
+        query_similares.append(ordenados[:K].tolist()) #get top-K
+    return query_similares
+
+
 def xor(a,b):
     return (a|b) & ~(a&b)
 def calculate_hamming_D(a,B):
     #return np.sum(a.astype('bool')^ B.astype('bool') ,axis=1) #distancia de hamming (# bits distintos)
     #return np.sum(np.logical_xor(a,B) ,axis=1) #distancia de hamming (# bits distintos)
-    return np.sum(a != B,axis=1) #distancia de hamming (# bits distintos) -- fastest
+    v = np.sum(a != B,axis=1) #distancia de hamming (# bits distintos) -- fastest
     #return np.sum(xor(a,B) ,axis=1) #distancia de hamming (# bits distintos)
+    return v.astype(a.dtype)
 
 def get_similar(query, corpus,tipo="topK", K=100, ball=2):
     """
         Retrieve similar documents to the query document inside the corpus (source)
     """
     #codify binary codes to fastest data type
-    query = query.astype('int8')
+    query = query.astype('int8') #no voy a ocupar mas de 127 bits
     corpus = corpus.astype('int8')
     
     query_similares = [] #indices
-    for number, dato_hash in enumerate(query):
+    for dato_hash in query:
         hamming_distance = calculate_hamming_D(dato_hash, corpus) # # bits distintos)
         if tipo=="EM": #match exacto
             ball= 0
@@ -88,7 +117,7 @@ def get_similar(query, corpus,tipo="topK", K=100, ball=2):
             
         #get topK
         ordenados = np.argsort(hamming_distance) #indices
-        query_similares.append(ordenados[:K]) #get top-K
+        query_similares.append(ordenados[:K].tolist()) #get top-K
     return query_similares
 
 def measure_metrics(labels_name, data_retrieved_query, labels_query, labels_source):
@@ -122,9 +151,6 @@ def P_atk(labels_retrieved, label_query, K=1):
     """
         Measure precision at K
     """
-    #if len(data_retrieved_query) == 0: #no encontro similares:
-    #    print("no hay SIMILARES")
-    #    return 0
     if len(labels_retrieved)>K:
         labels_retrieved = labels_retrieved[:K]
 
@@ -150,6 +176,10 @@ def AP_atk(data_retrieved_query, label_query, labels_source, K=0):
     """
         Average precision at K, average all the list precision until K.
     """
+    multi_label=False
+    if type(label_query) == list or type(label_query) == np.ndarray: #multiple classes
+        multi_label=True
+        
     if type(labels_source) == list:
         labels_source = np.asarray(labels_source)
         
@@ -162,14 +192,26 @@ def AP_atk(data_retrieved_query, label_query, labels_source, K=0):
     labels_retrieve = labels_source[data_retrieved_query] 
     
     score = []
+    num_hits = 0
+    p = 0 
     for i in range(K):
-        if label_query in labels_retrieve[i]: #only if "i"-element is relevant 
-            score.append( P_atk(labels_retrieve, label_query, K=i+1) )
+        relevant=False
+        
+        if multi_label:
+            if len( set(label_query)& set(labels_retrieve[i]) )>=1: #at least one label in comoon at k
+                relevant=True
+        else:
+            if label_query == labels_retrieve[i]: #only if "i"-element is relevant 
+                relevant=True
+        
+        if relevant:
+            num_hits +=1 
+            score.append(num_hits/(i+1)) #precition at k 
             
     if len(score) ==0:
         return 0
     else:
-        return np.mean(score)
+        return np.mean(score) #average all the precisionts until K
 
 def MAP_atk(datas_similars, labels_query, labels_source, K=0):
     """
@@ -272,3 +314,32 @@ def enmask_data(data, mask):
         return np.asarray(data)[mask].tolist()
     elif type(data) == np.ndarray:
         return data[mask]
+    
+def sample_test_mask(labels_list, N=100, multi_label=True):
+    idx_class = {}
+    for value in np.arange(len(labels_list)):
+        if multi_label:
+            for tag in labels_list[value]:
+                if tag in idx_class:
+                    idx_class[tag].append(value)
+                else:
+                    idx_class[tag] = [value]
+        else:
+            tag = labels_list[value]
+            if tag in idx_class:
+                idx_class[tag].append(value)
+            else:
+                idx_class[tag] = [value]
+
+    mask_train = np.ones(len(labels_list), dtype='bool')
+    selected = []
+    for clase in idx_class.keys():
+        selected_clase = []
+        for dato in idx_class[clase]:
+            if dato not in selected:
+                selected_clase.append(dato) # si dato no ha sido seleccionado como rep de otra clase se guarda
+
+        v = np.random.choice(selected_clase, size=N, replace=False)
+        selected += list(v)
+        mask_train[v] = False #test set
+    return mask_train

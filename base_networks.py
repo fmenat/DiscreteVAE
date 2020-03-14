@@ -30,7 +30,7 @@ def define_pre_encoder(data_dim,layers=2,units=512,dropout=0.0,BN=False): #defin
             model.add(BatchNormalization())
     return model
 
-def define_generator(Nb,data_dim,layers=2,units=32,dropout=0.0,BN=False,exclusive=True):
+def define_generator(Nb,data_dim,layers=2,units=32,dropout=0.0,BN=False,out_type='softmax'):
     model = Sequential(name='generator/decoder')
     model.add(InputLayer(input_shape=(Nb,)))
     for i in np.arange(layers,0,-1):
@@ -40,10 +40,10 @@ def define_generator(Nb,data_dim,layers=2,units=32,dropout=0.0,BN=False,exclusiv
             model.add(Dropout(dropout))
         if BN:
             model.add(BatchNormalization())
-    if exclusive:
-        model.add(Dense(data_dim, activation='softmax')) #softmax generator
-    else:
-        model.add(Dense(data_dim, activation='sigmoid'))
+    #if exclusive:
+    model.add(Dense(data_dim, activation=out_type)) #softmax generator
+    #else:
+    #    model.add(Dense(data_dim, activation='sigmoid'))
     return model
 
 def add_Conv(it, filters, kernel_s, BN = False, **args):
