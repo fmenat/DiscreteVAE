@@ -2,30 +2,70 @@ from keras.layers import *
 from keras.models import Sequential
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 import gc, sys,os
 
-def compare_hist_train(hist1,hist2, dataset_name=""):
+def compare_hist_train(hist1,hist2, dataset_name="", global_L = True):
     ### binary vs traditional
-    history_dict1 = hist1.history
-    history_dict2 = hist2.history
-    loss_values1 = history_dict1['loss']
-    val_loss_values1 = history_dict1['val_loss']
-    loss_values2 = history_dict2['loss']
-    val_loss_values2 = history_dict2['val_loss']
-    epochs_l = range(1, len(loss_values1) + 1)
-
     plt.figure(figsize=(15,6))
-    plt.plot(epochs_l, loss_values1, 'bo-', label = "Train set traditional")
-    plt.plot(epochs_l, val_loss_values1, 'bv-', label = "Val set traditional")
-    plt.plot(epochs_l, loss_values2, 'go-', label = "Train set binary")
-    plt.plot(epochs_l, val_loss_values2, 'gv-', label = "Val set binary")
+    if global_L:
+        history_dict1 = hist1.history
+        history_dict2 = hist2.history
+        loss_values1 = history_dict1['loss']
+        val_loss_values1 = history_dict1['val_loss']
+        loss_values2 = history_dict2['loss']
+        val_loss_values2 = history_dict2['val_loss']
+        epochs_l = range(1, len(loss_values1) + 1)
+
+        plt.figure(figsize=(15,6))
+        plt.plot(epochs_l, loss_values1, 'bo-', label = "Train set traditional")
+        plt.plot(epochs_l, val_loss_values1, 'bv-', label = "Val set traditional")
+        plt.plot(epochs_l, loss_values2, 'go-', label = "Train set binary")
+        plt.plot(epochs_l, val_loss_values2, 'gv-', label = "Val set binary")
+    else:
+        add_hist_plot(hist1, c='b', model_n = "VAE")
+        add_hist_plot(hist2, c='g', model_n = "B-VAE")
+  
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend(loc="upper right", fancybox= True)
     plt.title("VAE loss "+dataset_name)
     plt.show()
     
+def add_hist_plot(hist, c='b', model_n = ""):
+    history_dict = hist.history
+    rec_loss_values = history_dict['REC_loss']
+    kl_loss_values = history_dict['KL']
+    rec_val_loss_values = history_dict['val_REC_loss']
+    kl_val_loss_values = history_dict['val_KL']
+    epochs_l = range(1, len(rec_loss_values) + 1)
+
+    plt.plot(epochs_l, rec_loss_values, c+'o-', label = "Train REC loss (%s)"%model_n)
+    plt.plot(epochs_l, kl_loss_values, c+'o-.', label = "Train KL loss (%s)"%model_n)
+
+    plt.plot(epochs_l, rec_val_loss_values, c+'v-', label = "Val REC loss (%s)"%model_n)
+    plt.plot(epochs_l, kl_val_loss_values, c+'v-.', label = "Val KL loss (%s)"%model_n)
     
+    
+def visualize_probas(logits, probas):
+    sns.distplot(probas.flatten())
+    plt.title("Bits probability distribution p(b|x)")
+    plt.show()
+    
+    from base_networks import samp_gumb
+    samp_probas = samp_gumb(logits)
+    
+    plt.hist(samp_probas.flatten())
+    plt.title("Gumbel-Softmax sample \hat{b}")
+    plt.show()
+    
+def visualize_mean(data):
+    sns.distplot(data)
+    plt.title("Continous Bits distribution (standar VAE)")
+    plt.show()
+    
+
 def define_fit(multi_label,X,Y, epochs=20):
     #function to define and train model
 
@@ -39,7 +79,7 @@ def define_fit(multi_label,X,Y, epochs=20):
     else:
         model_FF.add(Dense(Y.shape[1], activation="softmax"))
         model_FF.compile(optimizer='adam', loss="categorical_crossentropy",metrics=["accuracy"])
-    model_FF.fit(X, Y, epochs=epochs, batch_size=100, verbose=0)
+    model_FF.fit(X, Y, epochs=epochs, batch_size=128, verbose=0)
     return model_FF
 
 
@@ -60,6 +100,22 @@ class MedianHashing(object):
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X)
+    
+#if median is used, my binary codes should use it as well.. a probability 0.6 does not mean that
+# the bit is always on..
+#median= MedianHashing()
+#median.fit(encode_train)
+#val_train = median.transform(encode_train)
+#val_hash = median.transform(encode_val)
+def calculate_hash(data, from_probas=True, from_logits=True):    
+    if from_probas: #from probas
+        if from_logits:
+            from scipy.special import expit
+            data = expit(data)
+        data_hash = (data > 0.5)*1
+    else: #continuos
+        data_hash = (np.sign(data) + 1)/2
+    return data_hash.astype('int32')
 
 def get_hammD(query, corpus):
     """

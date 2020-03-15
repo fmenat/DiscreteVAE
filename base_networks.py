@@ -19,14 +19,19 @@ def BKL_loss(logits_b):
     return KL
 
 class Beta_Call(keras.callbacks.Callback):   
-    def __init__(self, beta_ann):
+    def __init__(self, beta_ann, kl_inc= 1./5000, max_KL=0.1, verbose=0):
+        #default parameters for text datasets..
         self.beta_ann = beta_ann
-        self.kl_inc = 1./5000
-        self.max_KL = 0.1 #default value
+        self.kl_inc = kl_inc
+        self.max_KL = max_KL
+        self.verbose = verbose
         super(Beta_Call,self).__init__()
         
     def on_epoch_end(self, epoch, logs={}):    
         K.set_value(self.beta_ann, np.min([K.get_value(self.beta_ann)+self.kl_inc*(epoch+1), self.max_KL])) 
+        if self.verbose==1:
+            print("Epoch",epoch,"the KL weight is",K.get_value(self.beta_ann)) 
+
 
 def define_pre_encoder(data_dim,layers=2,units=512,dropout=0.0,BN=False): #define pre_encoder network
     model = Sequential(name='pre-encoder')
@@ -144,3 +149,10 @@ def define_generator_CNN(shape_before_F, kernel_s, L=1, filters=32, max_pool=0, 
             out_x = Cropping2D((padd_len_x, padd_len_y))(out_x)
 
     return Model(inputs=it, outputs=out_x, name='generator/decoder')
+
+def samp_gumb(logits, tau=0.67):
+    from scipy.special import expit    
+    eps = 1e-7
+    U = np.random.uniform(0, 1, logits.shape)
+    b = logits + np.log(U + eps)- np.log(1-U + eps)
+    return expit(b/tau) 
