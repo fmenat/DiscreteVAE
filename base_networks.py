@@ -18,6 +18,16 @@ def BKL_loss(logits_b):
         return Nb*np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
     return KL
 
+class Beta_Call(keras.callbacks.Callback):   
+    def __init__(self, beta_ann):
+        self.beta_ann = beta_ann
+        self.kl_inc = 1./5000
+        self.max_KL = 0.1 #default value
+        super(Beta_Call,self).__init__()
+        
+    def on_epoch_end(self, epoch, logs={}):    
+        K.set_value(self.beta_ann, np.min([K.get_value(self.beta_ann)+self.kl_inc*(epoch+1), self.max_KL])) 
+
 def define_pre_encoder(data_dim,layers=2,units=512,dropout=0.0,BN=False): #define pre_encoder network
     model = Sequential(name='pre-encoder')
     model.add(InputLayer(input_shape=(data_dim,)))
