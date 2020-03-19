@@ -25,11 +25,11 @@ if data_used == "mnist":
     X_img = np.expand_dims(X_img, axis=-1)
     X_test = np.expand_dims(X_test, axis=-1)
     X_img = np.concatenate((X_img,X_test),axis=0)
-    del X_test
-    gc.collect()    
     #greyscale to rgb..
     import tensorflow as tf
     X_img = tf.image.grayscale_to_rgb(X_img).eval(session=keras.backend.get_session())
+    del X_test
+    gc.collect()
 
 elif data_used == "cifar10":
     (X_img, _), (X_test, _) = keras.datasets.cifar10.load_data()
@@ -64,6 +64,21 @@ elif data_used == "nuswide":
     mask_used_t = np.asarray(list(map(len,labels_t))) != 0
     X_img = load_imgs_mask(imgs_files, mask_used_t, size=size_I) #images names to load
     
+    
+elif data_used == "celeba":
+    import repackage
+    repackage.up()
+    from utils import load_imgs_mask
+
+    mask_av = np.loadtxt("../CelebA_mask_avail.txt").astype(bool)
+    df_atrr = pd.read_csv(folder+"list_attr_celeba.csv")[mask_av]
+    img_names = df_atrr["image_id"].values
+    imgs_files = [folder+ "imgs_celebA/"+ name for name in img_names]
+
+    N_total = len(df_atrr)
+    mask_used= np.ones(N_total, dtype=bool)
+    X_img = load_imgs_mask(imgs_files, mask_used, size=size_I) #images names to load
+
 else:
     print("Dont known dataset selected")
     assert False
@@ -80,7 +95,7 @@ if X_img.shape[1] != size_I:
     for img in X_img:
         new_.append(np.array( Image.fromarray(img).resize((size_I,size_I), Image.ANTIALIAS) ))
     X_img = np.asarray(new_)
-    del new_
+    del new_ , img
     gc.collect()
     
 #now pass through VGG
@@ -102,16 +117,16 @@ input_tensor = Input(shape=X_img.shape[1:])
 modelVGG = VGG16(weights='imagenet', include_top=False,input_tensor=input_tensor,pooling=pool_mo ) # LOAD PRETRAIN$
 modelVGG.summary()
     
-#procesar por batchs..
-BS = 50000
+BS = 2500 #change it based on your RAM memory!
 new_X = []
 for chunk in np.split(X_img, range(0, len(X_img)+BS, BS))[1:-1]:
     new_X.append(through_VGG(chunk, modelVGG))
+    gc.collect()
 new_X = np.concatenate(new_X, axis=0)
 del modelVGG
 gc.collect()
 
-#new_X = through_VGG(X_img.astype('float32'),pooling_mode=pool_mo)
+#new_X = through_VGG(X_img.astype('float32'),pooling_mode=pool_mo) #process all at once
 print("New shape through VGG: ",new_X.shape)
 if pool_mo == None:
     np.save(data_used+'_VGG.npy',new_X) #none pooling

@@ -75,7 +75,7 @@ def conv_bloq(it, filters, kernel_s, max_pool=0, BN=False,double=False, **args):
         f1 = MaxPool2D(max_pool)(f1)
     return f1
 
-def def_pre_encoder_CNN(input_dim, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False, **args): 
+def def_pre_encoder_CNN(input_dim, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False,dense_=False, **args): 
     it = Input(shape=input_dim)  #fixed length..
     f1 = it
     for l in range(L):
@@ -84,11 +84,11 @@ def def_pre_encoder_CNN(input_dim, kernel_s, L=1, filters=32, max_pool=0, BN=Fal
         
     shape_before_F = K.int_shape(f1)[1:] 
     out_x = Flatten()(f1)
-    #f1 = Dense(128, activation='relu')(f1) #o solo una
-    #f1 = Dense(500, activation='relu')(f1)
-    #f1 = Dense(500, activation='relu')(f1)
-    #if BN:
-    #    f1 = BatchNormalization()(f1)
+    
+    if dense_:
+        out_x = Dense(128, activation='relu')(out_x) 
+        if BN:
+            out_x = BatchNormalization()(out_x)
     return Model(inputs=it, outputs=out_x, name='pre-encoder'), shape_before_F
 
 
@@ -107,14 +107,16 @@ def convT_bloq(it, filters, kernel_s, max_pool=0, BN=False,double=False, **args)
     return f1
 
 
-def define_generator_CNN(shape_before_F, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False,out_shape =[],    **args): 
+def define_generator_CNN(shape_before_F, kernel_s, L=1, filters=32, max_pool=0, BN=False, double=False,out_shape =[], dense_=False,   **args): 
     it = Input(shape=(1,), name="dummy_inp")  #fixed length..
-    #f1 = Dense(500, activation='relu')(it)
-    #f1 = Dense(500, activation='relu')(f1)
-    #if BN:
-    #    f1 = BatchNormalization()(f1)
+    f1 = it
     
-    f1 = Dense(np.prod(shape_before_F), activation='linear')(it) 
+    if dense_:
+        f1 = Dense(128, activation='relu')(f1)
+        #if BN:
+        #    f1 = BatchNormalization()(f1)
+    
+    f1 = Dense(np.prod(shape_before_F), activation='linear')(f1) 
     
     f1 = Reshape(shape_before_F)(f1)
     #if BN:

@@ -61,17 +61,38 @@ def visualize_probas(logits, probas):
     plt.show()
     
 def visualize_mean(data):
-    sns.distplot(data)
+    sns.distplot(data.flatten())
     plt.title("Continous Bits distribution (standar VAE)")
     plt.show()
     
+    
+def visualize_probas_byB(probas):
+    bits_prob_mean = probas.mean(axis=0)  # mean(alpha(x))
 
-def define_fit(multi_label,X,Y, epochs=20):
+    B = probas.shape[1]
+
+    f, axx = plt.subplots( 1,2 , figsize=(9,5), sharey=True)
+    axx[0].bar(np.arange(B), bits_prob_mean)
+    axx[0].set_xlabel("Bit")
+    axx[0].set_ylim(0,1)
+    axx[0].axhline(0.5, 0,B, c='r')
+
+    sns.distplot(bits_prob_mean, vertical=True)
+    axx[1].axhline(0.5, 0,B, c='r')
+
+    f.suptitle("Bit mean probability mean(p(b|x))")
+    plt.show()
+
+
+
+def define_fit(multi_label,X,Y, epochs=20, dense_=True):
     #function to define and train model
 
     #define model
     model_FF = Sequential()
-    model_FF.add(Dense(256, input_dim=X.shape[1], activation="relu"))
+    model_FF.add(InputLayer(input_shape=(X.shape[1],) ))
+    if dense_:
+        model_FF.add(Dense(256, activation="relu"))
     #model_FF.add(Dense(128, activation="relu"))
     if multi_label:
         model_FF.add(Dense(Y.shape[1], activation="sigmoid"))
@@ -248,8 +269,7 @@ def AP_atk(data_retrieved_query, label_query, labels_source, K=0):
     labels_retrieve = labels_source[data_retrieved_query] 
     
     score = []
-    num_hits = 0
-    p = 0 
+    num_hits = 0.
     for i in range(K):
         relevant=False
         
@@ -399,3 +419,51 @@ def sample_test_mask(labels_list, N=100, multi_label=True):
         selected += list(v)
         mask_train[v] = False #test set
     return mask_train
+
+import keras
+from IPython.display import display
+
+def evaluate_Top100(encoder,train,val,labels_train, labels_val, binary=True):
+    encode_train = encoder.predict(train)
+    encode_val = encoder.predict(val)
+    
+    train_hash = calculate_hash(encode_train, from_probas=binary )
+    val_hash = calculate_hash(encode_val, from_probas=binary)
+
+    val_similares_train =  get_similar(val_hash, train_hash, tipo='topK',K=100) 
+    return M_P_atk(val_similares_train, labels_query=labels_val, labels_source=labels_train, K=100)
+
+def find_beta(create_model, X_source_inp, X_source_out, X_query_input, labels_source,labels_query, binary=True,values=20,E=30,BS=100):
+    decay = 2.
+    beta_try = [ decay**(-value) for value in np.arange(values)] #u otros valores?
+
+    P_k100 = []
+    for beta_value in beta_try:
+        
+        p_value = []
+        for _ in range(5): #it take too much...
+            vae_model , encoder_vae, _ = create_model(beta_value) #call function that creates model
+            vae_model.fit(X_source_inp, X_source_out, epochs=E, batch_size=BS, verbose=0)
+
+            #selected based on P@k=100
+            p_value.append(evaluate_Top100(encoder_vae,X_source_inp,X_query_input,labels_source,labels_query,binary=binary))
+            keras.backend.clear_session()
+            
+        P_k100.append(np.mean(p_value))        
+        gc.collect()
+    
+    #Summary!
+    df = pd.DataFrame({"beta":beta_try, "score":P_k100})
+    df["score"] = df["score"].round(4)
+
+    print("***************************************")
+    print("*********** SUMMARY RESULTS ***********")
+    print("***************************************")
+    display(df)
+    idx_max = np.argmax(P_k100)
+    idx_min = np.argmin(P_k100)
+    print("Best value is %.4f with beta %f"%(P_k100[idx_max], beta_try[idx_max]))
+    print("Worst value is %.4f with beta %f"%(P_k100[idx_min], beta_try[idx_min]))
+    print("***************************************")
+
+    return beta_try[idx_max] #beta_selected
