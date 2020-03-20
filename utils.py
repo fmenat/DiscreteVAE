@@ -203,9 +203,19 @@ def measure_metrics(labels_name, data_retrieved_query, labels_query, labels_sour
     """
     if type(labels_source) == list:
         labels_source = np.asarray(labels_source)
+        
+    multi_label=False
+    if type(labels_query[0]) == list or type(labels_query[0]) == np.ndarray: #multiple classes
+        multi_label=True
     
     #relevant document for query data
-    count_labels = {label:np.sum([label in aux for aux in labels_source]) for label in labels_name} 
+    
+    if multilabel:
+        count_labels = {label: np.sum([label in aux for aux in labels_source]) for label in labels_name}
+    else:
+        count_labels = {label: np.sum([label == aux for aux in labels_source]) for label in labels_name}
+    
+    #count_labels = {label:np.sum([label in aux for aux in labels_source]) for label in labels_name} 
     
     precision = 0.
     recall =0.
@@ -214,7 +224,7 @@ def measure_metrics(labels_name, data_retrieved_query, labels_query, labels_sour
             continue
         labels_retrieve = labels_source[similars] #labels of retrieved data
         
-        if type(labels_retrieve[0]) == list or type(labels_retrieve[0]) == np.ndarray: #multiple classes
+        if multi_label: #multiple classes
             tp = np.sum([len(set(label)& set(aux))>=1 for aux in labels_retrieve]) #al menos 1 clase en comun --quizas variar
             recall += tp/np.sum([count_labels[aux] for aux in label ]) #cuenta todos los label del dato
         else: #only one class
@@ -313,11 +323,11 @@ def compare_cells_plot(nb,train_hash1,train_hash2,test_hash1=[],test_hash2=[]):
     valores_unicos, count_hash =  hash_analysis(train_hash1)
     print("Cantidad de memorias ocupadas hash1: ",len(valores_unicos))
     plt.figure(figsize=(14,4))
-    plt.plot(sorted(list(count_hash.values()))[::-1],'bo-',label="Binary")
+    plt.plot(sorted(list(count_hash.values()))[::-1],'go-',label="Binary")
     
     valores_unicos, count_hash =  hash_analysis(train_hash2)
     print("Cantidad de memorias ocupadas hash2: ",len(valores_unicos))
-    plt.plot(sorted(list(count_hash.values()))[::-1],'go-',label="Traditional")
+    plt.plot(sorted(list(count_hash.values()))[::-1],'bo-',label="Traditional")
     plt.legend()
     plt.show()
     
@@ -328,11 +338,11 @@ def compare_cells_plot(nb,train_hash1,train_hash2,test_hash1=[],test_hash2=[]):
         valores_unicos, count_hash =  hash_analysis(test_hash1)
         print("Cantidad de memorias ocupadas hash1: ",len(valores_unicos))
         plt.figure(figsize=(15,4))
-        plt.plot(sorted(list(count_hash.values()))[::-1],'bo-',label="Binary")
+        plt.plot(sorted(list(count_hash.values()))[::-1],'go-',label="Binary")
         
         valores_unicos, count_hash =  hash_analysis(test_hash2)
         print("Cantidad de memorias ocupadas hash2: ",len(valores_unicos))
-        plt.plot(sorted(list(count_hash.values()))[::-1],'go-',label="Traditional")
+        plt.plot(sorted(list(count_hash.values()))[::-1],'bo-',label="Traditional")
         plt.legend()
         plt.show()
         
@@ -441,7 +451,7 @@ def find_beta(create_model, X_source_inp, X_source_out, X_query_input, labels_so
     for beta_value in beta_try:
         
         p_value = []
-        for _ in range(5): #it take too much...
+        for _ in range(5): #maybe 3 
             vae_model , encoder_vae, _ = create_model(beta_value) #call function that creates model
             vae_model.fit(X_source_inp, X_source_out, epochs=E, batch_size=BS, verbose=0)
 
