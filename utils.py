@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from scipy import io as sio
 import gc, sys,os
 
 def compare_hist_train(hist1,hist2, dataset_name="", global_L = True):
@@ -83,6 +84,50 @@ def visualize_probas_byB(probas):
     f.suptitle("Bit mean probability mean(p(b|x))")
     plt.show()
 
+    
+def Load_Dataset(filename):
+    dataset = sio.loadmat(filename)
+    x_train = dataset['train']
+    x_test = dataset['test']
+    x_cv = dataset['cv']
+    y_train = dataset['gnd_train']
+    y_test = dataset['gnd_test']
+    y_cv = dataset['gnd_cv']
+    
+    data = {}
+    data["n_trains"] = y_train.shape[0]
+    data["n_tests"] = y_test.shape[0]
+    data["n_cv"] = y_cv.shape[0]
+    data["n_tags"] = y_train.shape[1]
+    data["n_feas"] = x_train.shape[1]
+
+    ## Convert sparse to dense matricesimport numpy as np
+    train = x_train.toarray()
+    nz_indices = np.where(np.sum(train, axis=1) > 0)[0]
+    train = train[nz_indices, :]
+    train_len = np.sum(train > 0, axis=1)
+
+    test = x_test.toarray()
+    test_len = np.sum(test > 0, axis=1)
+
+    cv = x_cv.toarray()
+    cv_len = np.sum(cv > 0, axis=1)
+
+    gnd_train = y_train[nz_indices, :]
+    gnd_test = y_test
+    gnd_cv = y_cv
+
+    data["train"] = train
+    data["test"] = test
+    data["cv"] = cv
+    data["train_len"] = train_len
+    data["test_len"] = test_len
+    data["cv_len"] = cv_len
+    data["gnd_train"] = gnd_train
+    data["gnd_test"] = gnd_test
+    data["gnd_cv"] = gnd_cv
+    
+    return data
 
 
 def define_fit(multi_label,X,Y, epochs=20, dense_=True):
