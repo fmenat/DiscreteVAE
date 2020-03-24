@@ -522,3 +522,38 @@ def find_beta(create_model, X_source_inp, X_source_out, X_query_input, labels_so
     print("***************************************")
 
     return beta_try[idx_max] #beta_selected
+
+def find_lambda(create_model, X_source_inp, X_source_out, X_query_input, labels_source,labels_query, binary=True,values=14,E=30,BS=100):
+    mitad = int(values/2)
+    lambda_try = [ 10.**(value) for value in np.arange(-mitad,mitad)] #u otros valores?
+
+    P_k100 = []
+    for lambda_value in lambda_try:
+        
+        p_value = []
+        for _ in range(5): #maybe 3 
+            vae_model , encoder_vae, _ = create_model(lambda_value) #call function that creates model
+            vae_model.fit(X_source_inp, X_source_out, epochs=E, batch_size=BS, verbose=0)
+
+            #selected based on P@k=100
+            p_value.append(evaluate_Top100(encoder_vae,X_source_inp,X_query_input,labels_source,labels_query,binary=binary))
+            keras.backend.clear_session()
+            
+        P_k100.append(np.mean(p_value))        
+        gc.collect()
+    
+    #Summary!
+    df = pd.DataFrame({"lambda":lambda_try, "score":P_k100})
+    df["score"] = df["score"].round(4)
+
+    print("***************************************")
+    print("*********** SUMMARY RESULTS ***********")
+    print("***************************************")
+    display(df)
+    idx_max = np.argmax(P_k100)
+    idx_min = np.argmin(P_k100)
+    print("Best value is %.4f with lambda %f"%(P_k100[idx_max], lambda_try[idx_max]))
+    print("Worst value is %.4f with lambda %f"%(P_k100[idx_min], lambda_try[idx_min]))
+    print("***************************************")
+
+    return lambda_try[idx_max] #lambda select
