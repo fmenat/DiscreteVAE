@@ -255,7 +255,7 @@ def measure_metrics(labels_name, data_retrieved_query, labels_query, labels_sour
     
     #relevant document for query data
     
-    if multilabel:
+    if multi_label:
         count_labels = {label: np.sum([label in aux for aux in labels_source]) for label in labels_name}
     else:
         count_labels = {label: np.sum([label == aux for aux in labels_source]) for label in labels_name}
