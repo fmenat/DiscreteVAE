@@ -4,24 +4,24 @@ from keras.models import Sequential,Model
 from keras import backend as K
 import numpy as np
 
-def old_KL_loss(z_mean,z_log_var):
-    #the mean and log-var of the latent distribution
-    def KL(y_true, y_pred):
-        return - 0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1) #con varianza
-    return KL
-
-def KL_loss(z_mean,z_log_var):
+def mean_KL_loss(z_mean,z_log_var):
     #the mean and log-var of the latent distribution
     def KL(y_true, y_pred):
         return - 0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1) #con varianza
     return KL
 
-def old_BKL_loss(logits_b):
+def KL_loss(z_mean,z_log_var):
+    #the mean and log-var of the latent distribution
+    def KL(y_true, y_pred):
+        return - 0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1) #con varianza
+    return KL
+
+def mean_BKL_loss(logits_b):
     p_b = keras.activations.sigmoid(logits_b) #B_j = Q(b_j) probability of b_j
     Nb = K.int_shape(p_b)[1]
     ep = K.epsilon()
     def KL(y_true, y_pred):
-        return Nb*np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
+        return Nb*np.log(2) + K.mean( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
     return KL
 
 def BKL_loss(logits_b):
@@ -29,7 +29,7 @@ def BKL_loss(logits_b):
     Nb = K.int_shape(p_b)[1]
     ep = K.epsilon()
     def KL(y_true, y_pred):
-        return np.log(2) + K.mean( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
+        return np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
     return KL
 
 class Beta_Call(keras.callbacks.Callback):   
