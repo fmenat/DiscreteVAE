@@ -21,7 +21,7 @@ def mean_BKL_loss(logits_b):
     Nb = K.int_shape(p_b)[1]
     ep = K.epsilon()
     def KL(y_true, y_pred):
-        return Nb*np.log(2) + K.mean( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
+        return np.log(2) + K.mean( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
     return KL
 
 def BKL_loss(logits_b):
@@ -29,7 +29,7 @@ def BKL_loss(logits_b):
     Nb = K.int_shape(p_b)[1]
     ep = K.epsilon()
     def KL(y_true, y_pred):
-        return np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
+        return Nb*np.log(2) + K.sum( p_b*K.log(p_b + ep) + (1-p_b)* K.log(1-p_b +ep),axis=1)
     return KL
 
 class Beta_Call(keras.callbacks.Callback):   
