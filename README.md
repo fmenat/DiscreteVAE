@@ -9,11 +9,16 @@ Experiments with Discrete VAE
 # :floppy_disk: Source
 * [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
 * [Final published version](https://doi.org/10.3233/IDA-200013)
+* Previous work in conference
+  * [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
+  * [Final published version](https://doi.org/10.1007/978-3-030-33904-3_12)
+  * [Presentation](https://github.com/fmenat/presentations/2019_CIARP_BVAE.pdf)
 
 # 🖊️ Citation
 Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. (2020)
 
 > Bibtex
+```
 @article{mena2020interpretable,
   title={Interpretable and effective hashing via Bernoulli variational auto-encoders},
   author={Mena, Francisco and {\~N}anculef, Ricardo and Valle, Carlos},
@@ -24,3 +29,4 @@ Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational
   year={2020},
   publisher={IOS Press}
 }
+```
