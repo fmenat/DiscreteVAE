@@ -12,7 +12,7 @@ Repository from our work in a variational auto-encoder with discrete (binary) va
 * Previous work in conference
   * [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
   * [Final published version](https://doi.org/10.1007/978-3-030-33904-3_12)
-  * [Presentation](https://github.com/fmenat/presentations/2019_CIARP_BVAE.pdf)
+  * [Presentation](https://github.com/fmenat/fmenat/blob/main/presentations/2019_CIARP_BVAE.pdf)
 
 # 🖊️ Citation
 Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. (2020)
