@@ -1,5 +1,5 @@
 # DiscreteVAE
-Experiments with Discrete VAE
+Repository from our work in a variational auto-encoder with discrete (binary) variables.
 
 * Using Gumbel-Max trick (a soft version)
 * Binary VAE: Hashing (Done)
@@ -18,7 +18,7 @@ Experiments with Discrete VAE
 Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. (2020)
 
 > Bibtex
-```
+```bibtex
 @article{mena2020interpretable,
   title={Interpretable and effective hashing via Bernoulli variational auto-encoders},
   author={Mena, Francisco and {\~N}anculef, Ricardo and Valle, Carlos},
