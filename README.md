@@ -6,13 +6,21 @@ Experiments with Discrete VAE
 	* Good results show that Binary VAE outperforms Traditional VAE on Hashing
 * Categorical VAE: Classes
 
+# :floppy_disk: Source
+* [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
+* [Final published version](https://doi.org/10.3233/IDA-200013)
 
-#### To Do:
-* Run experiments on Reuters Corpus Volume 1 (RCV 1)
-* NDCG on Reuters -> Analize how the model order the data according to labels
-* Use Collocations (n-grams)
-    * results does not change much --> analysis ?
-* Intrinsec Measure -> Accuracy on labeling the datasets with hidden representation
-    * Done!
-* Few Bits (4-8-16) -> Analize cells distributions (compare with regular Autoencoder, no bayesian)
-    * Done!
+# 🖊️ Citation
+Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. (2020)
+
+> Bibtex
+@article{mena2020interpretable,
+  title={Interpretable and effective hashing via Bernoulli variational auto-encoders},
+  author={Mena, Francisco and {\~N}anculef, Ricardo and Valle, Carlos},
+  journal={Intelligent Data Analysis},
+  volume={24},
+  number={S1},
+  pages={141--166},
+  year={2020},
+  publisher={IOS Press}
+}
