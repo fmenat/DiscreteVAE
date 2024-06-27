@@ -28,7 +28,8 @@ Mena, Francisco and Ñanculef, Ricardo. "*A binary variational autoencoder for h
   booktitle={Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24},
   pages={131--141},
   year={2019},
-  organization={Springer}
+  organization={Springer},
+  doi={10.1007/978-3-030-33904-3_12}
 }
 ```
 > this is a reference of our initial work with text data
@@ -43,7 +44,8 @@ Mena, Francisco, Ñanculef, Ricardo, and Valle, Carlos. "*Interpretable and effe
   number={S1},
   pages={141--166},
   year={2020},
-  publisher={IOS Press}
+  publisher={IOS Press},
+  doi={10.3233/IDA-200013}
 }
 ```
 > this is a reference of our extended work with text+image data
