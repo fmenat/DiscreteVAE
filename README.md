@@ -1,4 +1,4 @@
-# DiscreteVAE
+# :computer: DiscreteVAE
 Repository from our work in a variational auto-encoder with discrete (binary) variables.
 
 * Using Gumbel-Max trick (a soft version)
@@ -6,23 +6,21 @@ Repository from our work in a variational auto-encoder with discrete (binary) va
 	* Good results show that Binary VAE outperforms Traditional VAE on Hashing
 * Categorical VAE: Classes
 
-# :floppy_disk: Source
+# :scroll: Source
 
 * Preliminary work in a conference
-  * [Final published version](https://doi.org/10.1007/978-3-030-33904-3_12)
-  * [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
+  * :unlock: [Final published version](https://doi.org/10.1007/978-3-030-33904-3_12)
+  * :unlock: [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
   * [Presentation](https://github.com/fmenat/fmenat/blob/main/presentations/2019_CIARP_BVAE.pdf)
 * Extended work in a journal
-  * [Final published version](https://doi.org/10.3233/IDA-200013)
-  * [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
+  * :lock: [Final published version](https://doi.org/10.3233/IDA-200013)
+  * :unlock: [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
   
 
 # 🖊️ Citation
 
-> Reference of our initial work with text data
 
 Mena, Francisco and Ñanculef, Ricardo. "*A binary variational autoencoder for hashing*". Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24, 2019
-
 ```bibtex
 @inproceedings{mena2019binary,
   title={A binary variational autoencoder for hashing},
@@ -32,13 +30,10 @@ Mena, Francisco and Ñanculef, Ricardo. "*A binary variational autoencoder for h
   year={2019},
   organization={Springer}
 }
-
 ```
-
-> Reference of our extended work with text+image data
+> this is a reference of our initial work with text data
 
 Mena, Francisco, Ñanculef, Ricardo, and Valle, Carlos. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. 2020
-
 ```bibtex
 @article{mena2020interpretable,
   title={Interpretable and effective hashing via Bernoulli variational auto-encoders},
@@ -51,3 +46,4 @@ Mena, Francisco, Ñanculef, Ricardo, and Valle, Carlos. "*Interpretable and effe
   publisher={IOS Press}
 }
 ```
+> this is a reference of our extended work with text+image data
