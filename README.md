@@ -9,13 +9,12 @@ Repository from our work in a variational auto-encoder with discrete (binary) va
 # :floppy_disk: Source
 
 * Preliminary work in a conference
-  * [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
   * [Final published version](https://doi.org/10.1007/978-3-030-33904-3_12)
+  * [Preprint](https://www.researchgate.net/publication/336823794_A_Binary_Variational_Autoencoder_for_Hashing)
   * [Presentation](https://github.com/fmenat/fmenat/blob/main/presentations/2019_CIARP_BVAE.pdf)
 * Extended work in a journal
-  * [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
   * [Final published version](https://doi.org/10.3233/IDA-200013)
-  * Previous work in conference
+  * [Preprint](https://www.researchgate.net/publication/347462953_Interpretable_and_effective_hashing_via_Bernoulli_variational_auto-encoders)
   
 
 # 🖊️ Citation
