@@ -21,7 +21,7 @@ Repository from our work in a variational auto-encoder with discrete (binary) va
 
 > Reference of our initial work with text data
 
-Mena, F. et al. "*A binary variational autoencoder for hashing*". Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24. (2019)
+Mena, Francisco and Ñanculef, Ricardo. "*A binary variational autoencoder for hashing*". Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24, 2019
 
 ```bibtex
 @inproceedings{mena2019binary,
@@ -37,7 +37,7 @@ Mena, F. et al. "*A binary variational autoencoder for hashing*". Progress in Pa
 
 > Reference of our extended work with text+image data
 
-Mena, F., et al. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. (2020)
+Mena, Francisco, Ñanculef, Ricardo, and Valle, Carlos. "*Interpretable and effective hashing via Bernoulli variational auto-encoders*". Intelligent Data Analysis, 24(S1), 141-166. 2020
 
 ```bibtex
 @article{mena2020interpretable,
